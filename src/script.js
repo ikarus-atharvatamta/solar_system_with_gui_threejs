@@ -13,6 +13,7 @@ import saturnRingTexture from "./assets/img/saturn_ring.png";
 import uranusTexture from "./assets/img/uranus.jpg";
 import uranusRingTexture from "./assets/img/mercury.jpg";
 import neptuneTexture from "./assets/img/neptune.jpg";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 // loading texture for background
 
@@ -33,8 +34,29 @@ camera.position.set(-60, 100, 100);
 //adding orbit controls
 const controls = new OrbitControls(camera, renderer.domElement);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.03);
+const ambientLight = new THREE.AmbientLight(0xffffff, .46);
 scene.add(ambientLight);
+//spaceship
+
+const shipOrbit = new THREE.Object3D();
+scene.add(shipOrbit);
+
+const gltfLoader = new GLTFLoader();
+gltfLoader.load(
+  "../public/assets/models/spaceship.glb",
+  (gltf) => {
+    const spaceship = gltf.scene;
+
+    spaceship.scale.set(0.3, 0.3, 0.3);
+    spaceship.position.set(70, 10, 40);
+    spaceship.rotation.y = Math.PI / 2;
+    shipOrbit.add(spaceship);
+  },undefined,
+  function(error) {
+    console.error("error")
+  }
+  
+);
 
 //adding gridhelper to plane
 // const gridHelper = new THREE.GridHelper(12,15);
@@ -193,8 +215,8 @@ orbitAdd(170);
 // adding gui controls
 const gui = new dat.GUI();
 const options = {
-  mercury: 0.004,
-  venus: 0.003,
+  mercury: 0.0004,
+  venus: 0.0003,
   earth: 0.002,
   mars: 0.001,
   jupiter: 0.0009,
@@ -283,6 +305,10 @@ function animate() {
   uranus.obj.rotateY(options.uranus);
   neptune.obj.rotateY(options.neptune);
 
+  shipOrbit.rotation.y += 0.002;
+  shipOrbit.rotation.x += 0.003;
+  shipOrbit.rotation.z += 0.001;
+
   renderer.render(scene, camera);
 }
 
@@ -291,7 +317,7 @@ const intersectionPoint = new THREE.Vector3(); // coordinates where the ray inte
 const planeNormal = new THREE.Vector3(); // unit normal vector to represet direction of plane
 const plane = new THREE.Plane(); // plane to be created whenever we change position of cursor
 const raycaster = new THREE.Raycaster(); //emits the ray between the camera and the cursor.
-const sphereGeometry = new THREE.SphereGeometry(0.5);
+const sphereGeometry = new THREE.SphereGeometry(0.35);
 
 // to update the mouse variable with normalised coordiantes of current cursor position
 
@@ -316,6 +342,12 @@ window.addEventListener("click", function (e) {
 });
 
 animate();
+// responsive window
+window.addEventListener("resize", function(){
+  camera.aspect = this.window.innerWidth/ this.window.innerHeight
+  camera.updateProjectionMatrix();
+  renderer.setSize(this.window.innerWidth, this.window.innerHeight)
+})
 
 /*creating mercury and addding ti to scene add it to sun's mesh so that sun becomes parent and maercury becomes its child
  const mercuryGeo = new THREE.SphereGeometry(3.2,30,30);
