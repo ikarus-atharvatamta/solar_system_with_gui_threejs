@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import * as dat from "dat.gui";
-import starsTexture from "./assets/img/stars.jpg";
+import starsTexture from "./assets/img/stars3.jpg";
 import sunTexture from "./assets/img/sun.jpg";
 import mercuryTexture from "./assets/img/mercury.jpg";
 import venusTexture from "./assets/img/venus.jpg";
@@ -13,8 +13,6 @@ import saturnRingTexture from "./assets/img/saturn_ring.png";
 import uranusTexture from "./assets/img/uranus.jpg";
 import uranusRingTexture from "./assets/img/mercury.jpg";
 import neptuneTexture from "./assets/img/neptune.jpg";
-
-console.log(dat)
 
 // loading texture for background
 
@@ -91,10 +89,12 @@ scene.background = cubeTextureLoader.load([
 // ========creating solar system =========
 //creating light at the centre of the sun
 const pointLight = new THREE.PointLight(0xffffff, 20030, 400);
+
 pointLight.position.set(0, 0, 0);
 scene.add(pointLight);
 const lHelper = new THREE.PointLightHelper(pointLight);
 scene.add(lHelper);
+
 //sun
 const sunGeo = new THREE.SphereGeometry(16, 30, 30);
 const sunMat = new THREE.MeshBasicMaterial({
@@ -150,53 +150,106 @@ const uranus = createPlanets(7, uranusMap, 150, {
 });
 const neptune = createPlanets(7, neptuneMap, 175);
 
+//lsit of planet meshes
+
+const planets = [mercury, venus, mars, earth, jupiter, saturn, uranus, neptune];
+//tag each planet mesh with a name
+
+mercury.mesh.userData.name = "Mercury";
+venus.mesh.userData.name = "Venus";
+earth.mesh.userData.name = "Earth";
+mars.mesh.userData.name = "Mars";
+jupiter.mesh.userData.name = "Jupiter";
+saturn.mesh.userData.name = "Saturn";
+uranus.mesh.userData.name = "Uranus";
+neptune.mesh.userData.name = "Neptune";
+
+planets.forEach((p) => {
+  p.mesh.userData.type = "planet";
+});
+
 //adding orbits
 function orbitAdd(radius) {
-  const geo = new THREE.RingGeometry(radius - 0.05, radius + 0.05, 155);
+  const geo = new THREE.RingGeometry(radius - 0.5, radius + 0.05, 155, 1, 0);
   const mat = new THREE.MeshBasicMaterial({
     color: 0xffffff,
     side: THREE.DoubleSide,
     transparent: true,
-    opacity: 0.93,
+    opacity: 0.2,
   });
-  const orbit = new THREE.Mesh(geo, mat)
-  orbit.rotation.x = -0.5 *Math.PI
-  scene.add(orbit)
+  const orbit = new THREE.Mesh(geo, mat);
+  orbit.rotation.x = -0.5 * Math.PI;
+  scene.add(orbit);
 }
-orbitAdd(28)
-orbitAdd(44)
-orbitAdd(55)
-orbitAdd(70)
-orbitAdd(128)
-orbitAdd(100)
-orbitAdd(150)
-orbitAdd(170)
+orbitAdd(28);
+orbitAdd(44);
+orbitAdd(55);
+orbitAdd(70);
+orbitAdd(128);
+orbitAdd(100);
+orbitAdd(150);
+orbitAdd(170);
 
 // adding gui controls
 const gui = new dat.GUI();
 const options = {
-  mercury: 0.04,
-  venus: 0.03,
-  earth: 0.02,
-  mars: 0.01,
-  jupiter: 0.009,
-  saturn: 0.008,
-  uranus: 0.007,
-  neptune: 0.006,
+  mercury: 0.004,
+  venus: 0.003,
+  earth: 0.002,
+  mars: 0.001,
+  jupiter: 0.0009,
+  saturn: 0.0008,
+  uranus: 0.0007,
+  neptune: 0.0006,
 };
 let step = 0;
-const rotationFolder = gui.addFolder("ROTATION SPEED");
+const revolutionFolder = gui.addFolder("revolution speed control");
 
-rotationFolder.add(options, "mercury", 0, 0.05, 0.001);
-rotationFolder.add(options, "venus", 0, 0.05, 0.001);
-rotationFolder.add(options, "earth", 0, 0.05, 0.001);
-rotationFolder.add(options, "mars", 0, 0.05, 0.001);
-rotationFolder.add(options, "jupiter", 0, 0.05, 0.001);
-rotationFolder.add(options, "saturn", 0, 0.05, 0.001);
-rotationFolder.add(options, "uranus", 0, 0.05, 0.001);
-rotationFolder.add(options, "neptune", 0, 0.05, 0.001);
+revolutionFolder.add(options, "mercury", 0, 0.05, 0.001);
+revolutionFolder.add(options, "venus", 0, 0.05, 0.001);
+revolutionFolder.add(options, "earth", 0, 0.05, 0.001);
+revolutionFolder.add(options, "mars", 0, 0.05, 0.001);
+revolutionFolder.add(options, "jupiter", 0, 0.05, 0.001);
+revolutionFolder.add(options, "saturn", 0, 0.05, 0.001);
+revolutionFolder.add(options, "uranus", 0, 0.05, 0.001);
+revolutionFolder.add(options, "neptune", 0, 0.05, 0.001);
 
-rotationFolder.open();
+let selectedPlanet = null;
+
+const whichPlanet = {
+  selectedPlanet: "NONE",
+};
+
+gui.add(whichPlanet, "selectedPlanet").name("Selected Planet").listen();
+function selectPlanet() {
+  rayCaster.setFromCamera(mousePosition, camera);
+
+  const intersects = rayCaster.intersectObjects(planets.map((p) => p.mesh));
+
+  if (intersects.length > 0) {
+    // reset previous
+    if (selectedPlanet) {
+      selectedPlanet.material.emissive.set(0);
+    }
+
+    selectedPlanet = intersects[0].object;
+    selectedPlanet.material.emissive.set("green");
+
+    whichPlanet.selectedPlanet = selectedPlanet.userData.name;
+
+    console.log("Selected planet:", whichPlanet.selectedPlanet);
+  }
+}
+
+//raycaster
+const mousePosition = new THREE.Vector2();
+window.addEventListener("mousemove", function (e) {
+  mousePosition.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mousePosition.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  selectPlanet();
+});
+const rayCaster = new THREE.Raycaster();
 
 function animate() {
   requestAnimationFrame(animate);
@@ -209,7 +262,7 @@ function animate() {
   jupiter.mesh.rotateY(0.014);
   saturn.mesh.rotateY(0.048);
   uranus.mesh.rotateY(0.03);
-  neptune.mesh.rotateY(0.032);
+  neptune.mesh.rotateY(0.032); //
 
   //rotate around the sun
   //   mercury.obj.rotateY(0.04);
@@ -232,6 +285,36 @@ function animate() {
 
   renderer.render(scene, camera);
 }
+
+const mouse = new THREE.Vector2(); //normalised position of the cursor
+const intersectionPoint = new THREE.Vector3(); // coordinates where the ray intersects the plane, specifically the location of the mouse click
+const planeNormal = new THREE.Vector3(); // unit normal vector to represet direction of plane
+const plane = new THREE.Plane(); // plane to be created whenever we change position of cursor
+const raycaster = new THREE.Raycaster(); //emits the ray between the camera and the cursor.
+const sphereGeometry = new THREE.SphereGeometry(0.5);
+
+// to update the mouse variable with normalised coordiantes of current cursor position
+
+window.addEventListener("click", function (e) {
+  mouse.x = (e.clientX / this.window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / this.window.innerHeight) * 2 + 1;
+  planeNormal.copy(camera.position).normalize(); // to update plane normal
+  //copy method copies coordinate of cameraposition
+  // calling normalise on these coordinates generates the unit vector
+  plane.setFromNormalAndCoplanarPoint(planeNormal, scene.position); //create the plane.
+  raycaster.setFromCamera(mouse, camera); // create the ray
+  raycaster.ray.intersectPlane(plane, intersectionPoint);
+
+  const sphere = new THREE.Mesh(
+    sphereGeometry,
+    new THREE.MeshBasicMaterial({
+      color: "white",
+    })
+  );
+  sphere.position.copy(intersectionPoint);
+  scene.add(sphere);
+});
+
 animate();
 
 /*creating mercury and addding ti to scene add it to sun's mesh so that sun becomes parent and maercury becomes its child
@@ -272,4 +355,4 @@ animate();
 
  saturnRing.position.x = 128;
 saturnRing.rotation.x = -0.5*Math.PI
- */
+*/

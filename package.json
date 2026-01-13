@@ -9,9 +9,22 @@
   },
   "dependencies": {
     "dat.gui": "^0.7.9",
-    "three": "^0.160.0"
+    "three": "^0.160.1"
   },
   "devDependencies": {
-    "vite": "^5.0.0"
-  }
+    "vite": "^5.4.21"
+  },
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ikarus-atharvatamta/solar_system_with_gui_threejs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ikarus-atharvatamta/solar_system_with_gui_threejs/issues"
+  },
+  "homepage": "https://github.com/ikarus-atharvatamta/solar_system_with_gui_threejs#readme"
 }
